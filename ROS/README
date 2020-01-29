@@ -1,1 +1,39 @@
 Basic ROS stuff
+
+
+Basic ROS commands (Need to have this in ~/.bashrc : "source /opt/ros/kinetic/setup.bash") --
+
+- catkin_create_pkg <pkg_name> <dependency 1> <dependency 2>
+- catkin_make
+- rosnode list
+- rostopic list
+- roscore
+- rosrun <pkg_name> <node>
+- rqt_graph
+
+- roscd <pkg_name>
+- rosls <pkg_name>
+- roscp <from pkg path> <to pkg path>
+- rospack <pkg_name>
+
+- rosmsg
+- rossrv
+
+###################################
+
+> ros_ws1 : ROS workspace containing one package - beginner_tutorials. This package contains the basic publisher-subscriber code in C++.
+The code is already built.
+
+Instructions for executing --
+
+1. Run the worskpace setup script from the workspace -
+	source devel/setup.sh
+   Alternatively, write this command into ~/.bashrc so that it's run every time a terminal is opened
+2. In one terminal, run the ROS Core - 
+	roscore
+3. In a new termainal, run the publisher node -
+	rosrun beginner_tutorials talker
+4. In a new terminal, run the subscriber -
+	rosrun beginner_tutorials listener
+5. To vizualize the graph, run in new node -
+	rqt_graph 
