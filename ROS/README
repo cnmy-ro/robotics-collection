@@ -1,4 +1,4 @@
-Basic ROS stuff
+<< Basic ROS stuff >>
 
 
 Basic ROS commands (Need to have this in ~/.bashrc : "source /opt/ros/kinetic/setup.bash") --
@@ -9,6 +9,7 @@ Basic ROS commands (Need to have this in ~/.bashrc : "source /opt/ros/kinetic/se
 - rostopic list
 - roscore
 - rosrun <pkg_name> <node>
+- roslaunch <xml_launch_file>.launch
 - rqt_graph
 
 - roscd <pkg_name>
@@ -18,6 +19,13 @@ Basic ROS commands (Need to have this in ~/.bashrc : "source /opt/ros/kinetic/se
 
 - rosmsg
 - rossrv
+
+###################################
+
+General 3rd-party resources --
+
+- ROS Best practices : https://github.com/leggedrobotics/ros_best_practices/wiki
+- ROS C++ Style Guide : http://wiki.ros.org/CppStyleGuide
 
 ###################################
 
