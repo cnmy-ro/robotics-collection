@@ -50,7 +50,7 @@ class Robot:
         # Correction -- incorporating sensor readings from current time step
         C = self.sensor_model.get_C_matrix()
         Q = self.sensor_model.get_noise_covar()
-        Z = self.sensor_model.triangulate()
+        Z = self.sensor_model.estimate_self_pos()
         if Z is not None:
             M = np.dot(C, np.dot(bel_pose_covar_pred, C.T)) + Q
             M_inv = np.linalg.inv(M)

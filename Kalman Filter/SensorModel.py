@@ -55,7 +55,7 @@ class SensorModel:
 
         # Control params
         self.C = np.identity(3)
-        self.Q = np.identity(3) * np.array([10, 10, 2])
+        self.Q = np.identity(3) * np.array([5, 5, 2])
 
         # Triangulation stuff
         self.nearest_features = None
@@ -78,7 +78,7 @@ class SensorModel:
         return self.sensor_range
 
     # Robot can only access this function ######################################
-    def triangulate(self):
+    def estimate_self_pos(self):
         robot_angle = self.robot_actual_pose[2]
 
         # Get feature data from beacons
@@ -100,7 +100,7 @@ class SensorModel:
         noise = np.random.multivariate_normal(mean=[0,0,0], cov=self.Q)
 
         # Triangulation --------------------------------------------------------
-        tri_features = [] # List of features that were used for triangulation
+        self.tri_features = [] # List of features that were used for triangulation
         Z = None
         for i in range(len(nearest_features)):
             feature_a = nearest_features[i]
@@ -112,12 +112,10 @@ class SensorModel:
             z_robot_angle = math.atan2(beacon_a_coord[1]-z_y, beacon_a_coord[0]-z_x) - math.radians(feature_a[1])
             z_robot_angle = math.degrees(z_robot_angle)
 #
-#            tri_features = list([nearest_features[i]])
+            self.tri_features = list([feature_a])
 #            Z = np.dot(self.C, np.array([z_x, z_y, z_robot_angle])) + noise
-#            self.tri_features = tri_features
 
             # Look for a 2nd beacon whose 'circle' intersects with the 1st
-            intersect = False
             for j in range(len(nearest_features)):
                 intersection_pts = None
                 if j != i:
@@ -127,37 +125,18 @@ class SensorModel:
                     distance_b = feature_b[0]
                     intersection_pts = get_circle_circle_intersection(beacon_a_coord, distance_a, beacon_b_coord, distance_b)
                     if intersection_pts:
-                        intersect = True
-                        intersection_pts = np.array(intersection_pts)
 
-                        # Estimate robot's position using 2 beacons' "intersection", just in case a 3rd beacon isn't found to triangulate
-                        z_x = np.mean(intersection_pts[:,0])
-                        z_y = np.mean(intersection_pts[:,1])
-                        z_robot_angle = math.atan2(beacon_a_coord[1]-z_y, beacon_a_coord[0]-z_x) - math.radians(feature_a[1])
-                        z_robot_angle = math.degrees(z_robot_angle)
+                        for int_pt in intersection_pts:
+                            z_x, z_y = int_pt
+                            z_robot_angle_a = math.atan2(beacon_a_coord[1]-z_y, beacon_a_coord[0]-z_x) - math.radians(feature_a[1])
+                            z_robot_angle_a = math.degrees(z_robot_angle_a)
 
-                        tri_features = list([nearest_features[i], nearest_features[j]])
-                        Z = np.dot(self.C, np.array([z_x, z_y, z_robot_angle])) + noise
-                        break
+                            z_robot_angle_b = math.atan2(beacon_b_coord[1]-z_y, beacon_b_coord[0]-z_x) - math.radians(feature_b[1])
+                            z_robot_angle_b = math.degrees(z_robot_angle_b)
 
-            # Check for a 3rd beacon only if the first 2 circles intersect
-            if intersect == True:
-                for k in range(len(nearest_features)):
-                    if k != i and k != j:
-                        feature_c = nearest_features[k]
-                        sig_c = round(feature_c[2])
-                        beacon_c_coord = self.beacons[sig_c]
-                        distance_c = feature_c[0]
-                        for pt in intersection_pts:
-                            if abs(euclidean_distance(pt, beacon_c_coord) - distance_c) < self.tolerance: # If the robot is at point 'pt'
-                                z_x, z_y = pt
-                                z_robot_angle = math.atan2(beacon_c_coord[1]-z_y, beacon_c_coord[0]-z_x) - math.radians(feature_c[1])
-                                z_robot_angle = math.degrees(z_robot_angle)
+                            if z_robot_angle_a == z_robot_angle_b:
+                                tri_features = list([feature_a, feature_b])
+                                Z = np.dot(self.C, np.array([z_x, z_y, z_robot_angle_a])) + noise
 
-                                tri_features = list([nearest_features[i], nearest_features[j], nearest_features[k]])
-                                Z = np.dot(self.C, np.array([z_x, z_y, z_robot_angle])) + noise
-
-#                                return Z
-            self.tri_features = tri_features
-            return Z
-
+                                self.tri_features = tri_features
+                                return Z
