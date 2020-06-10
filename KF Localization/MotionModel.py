@@ -33,7 +33,7 @@ def update_robot_position(robot_pose, velocities, mode='true', time_step=1):
         return robot_pose_new, A, B
 
     if mode == 'noisy': # For the robot
-        R = np.identity(3) * np.array([5, 5, 1])
+        R = np.identity(3) * np.array([10, 10, 5])
 #        noise = np.random.multivariate_normal(mean=[0,0,0], cov=R)
 #        robot_pose_new += noise
         return robot_pose_new, A, B, R

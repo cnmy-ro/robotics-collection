@@ -77,7 +77,7 @@ class SensorModel:
     def get_sensor_range(self):
         return self.sensor_range
 
-    # Robot can only access this function ######################################
+    # Robot can only access these functions ######################################
     def estimate_self_pos(self):
         robot_angle = self.robot_actual_pose[2]
 
@@ -111,10 +111,7 @@ class SensorModel:
             z_x, z_y = beacon_a_coord
             z_robot_angle = math.atan2(beacon_a_coord[1]-z_y, beacon_a_coord[0]-z_x) - math.radians(feature_a[1])
             z_robot_angle = math.degrees(z_robot_angle)
-#
             self.tri_features = list([feature_a])
-#            Z = np.dot(self.C, np.array([z_x, z_y, z_robot_angle])) + noise
-
             # Look for a 2nd beacon whose 'circle' intersects with the 1st
             for j in range(len(nearest_features)):
                 intersection_pts = None
@@ -140,3 +137,28 @@ class SensorModel:
 
                                 self.tri_features = tri_features
                                 return Z
+
+
+def sense_keypoints(self):
+        robot_angle = self.robot_actual_pose[2]
+
+        # Get feature data from beacons
+        feature_vector = []
+        for i in range(len(self.beacons)):
+            range_i = euclidean_distance(self.beacons[i], self.robot_actual_pose[:2])
+            bearing_i = math.atan2(self.beacons[i][1]-self.robot_actual_pose[1], self.beacons[i][0]-self.robot_actual_pose[0]) - math.radians(robot_angle)
+            signature_i = i
+
+            feature = np.array([range_i, math.degrees(bearing_i), signature_i])
+            feature_vector.append(feature.tolist())
+
+        feature_vector = sorted(feature_vector, key=sort_key)
+        # Features (beacons) within sensor range
+        nearest_features = [f[:] for f in feature_vector if f[0]<self.sensor_range]
+        noise = np.random.multivariate_normal(mean=[0,0,0], cov=self.Q)
+        if len(nearest_features) > 0:
+            nearest_features = np.array(nearest_features) + noise
+
+        self.tri_features = nearest_features
+
+        return nearest_features, self.beacons
